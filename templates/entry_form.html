@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}{% if entry %}Редактирование{% else %}Новая запись{% endif %} — Password Manager{% endblock %}
+{% block content %}
+<a href="{{ url_for('index') }}" class="back">&larr; К списку</a>
+
+<h1>{% if entry %}Редактирование записи{% else %}Новая запись{% endif %}</h1>
+
+<form method="post" class="entry-form">
+  <div class="grid-2">
+    <label>
+      Название*
+      <input type="text" name="title" required
+             value="{{ entry.title if entry else '' }}">
+    </label>
+    <label>
+      Категория
+      <select name="category">
+        {% for key, label in categories %}
+          <option value="{{ key }}" {% if entry and entry.category == key %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Хост / IP
+      <input type="text" name="host" value="{{ entry.host if entry else '' }}"
+             placeholder="srv01.lab.local или 10.0.0.5">
+    </label>
+    <label>
+      Порт
+      <input type="text" name="port" value="{{ entry.port if entry else '' }}"
+             placeholder="22, 3389, 443…">
+    </label>
+    <label>
+      Протокол
+      <input type="text" name="protocol" value="{{ entry.protocol if entry else '' }}"
+             placeholder="ssh, rdp, winrm, https…" list="protocol-list">
+      <datalist id="protocol-list">
+        <option value="ssh"><option value="rdp"><option value="winrm">
+        <option value="https"><option value="http"><option value="ftp">
+        <option value="vnc"><option value="ipmi">
+      </datalist>
+    </label>
+    <label>
+      URL
+      <input type="text" name="url" value="{{ entry.url if entry else '' }}"
+             placeholder="https://panel.example.com">
+    </label>
+    <label>
+      Логин
+      <input type="text" name="username" value="{{ entry.username if entry else '' }}"
+             autocomplete="off">
+    </label>
+    <label>
+      Пароль
+      <input type="text" name="password" value="{{ password_value }}"
+             autocomplete="off">
+    </label>
+    <label class="full">
+      Теги (через запятую)
+      <input type="text" name="tags" value="{{ entry.tags if entry else '' }}"
+             placeholder="prod, k8s, domain-controller">
+    </label>
+    <label class="full">
+      Заметки
+      <textarea name="notes" rows="6"
+                placeholder="MFA-секрет, путь к ключу, особенности доступа…">{{ notes_value }}</textarea>
+    </label>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a href="{{ url_for('index') }}" class="btn">Отмена</a>
+  </div>
+</form>
+{% endblock %}

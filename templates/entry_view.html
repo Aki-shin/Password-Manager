@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}{{ entry.title }} — Password Manager{% endblock %}
+{% block content %}
+<a href="{{ url_for('index') }}" class="back">&larr; К списку</a>
+
+<article class="entry-card">
+  <header>
+    <h1>{{ entry.title }}</h1>
+    <div class="meta">
+      <span class="chip">{{ entry.category_label() }}</span>
+      {% if entry.protocol %}<span class="chip">{{ entry.protocol }}</span>{% endif %}
+      {% for tag in entry.tag_list() %}<span class="tag">{{ tag }}</span>{% endfor %}
+    </div>
+  </header>
+
+  <dl class="fields">
+    {% if entry.host %}
+      <dt>Хост</dt>
+      <dd>
+        <code>{{ entry.host }}{% if entry.port %}:{{ entry.port }}{% endif %}</code>
+        <button class="btn btn-small" data-copy-text="{{ entry.host }}{% if entry.port %}:{{ entry.port }}{% endif %}">Копировать</button>
+      </dd>
+    {% endif %}
+    {% if entry.url %}
+      <dt>URL</dt>
+      <dd><a href="{{ entry.url }}" target="_blank" rel="noopener">{{ entry.url }}</a></dd>
+    {% endif %}
+    {% if entry.username %}
+      <dt>Логин</dt>
+      <dd>
+        <code>{{ entry.username }}</code>
+        <button class="btn btn-small" data-copy-text="{{ entry.username }}">Копировать</button>
+      </dd>
+    {% endif %}
+    <dt>Пароль</dt>
+    <dd>
+      <code id="password-field" data-entry-id="{{ entry.id }}">••••••••</code>
+      <button class="btn btn-small" data-reveal-password="{{ entry.id }}">Показать</button>
+      <button class="btn btn-small" data-copy-password="{{ entry.id }}">Копировать</button>
+    </dd>
+    <dt>Заметки</dt>
+    <dd>
+      <pre id="notes-field" data-entry-id="{{ entry.id }}" class="notes">••••••••</pre>
+      <button class="btn btn-small" data-reveal-notes="{{ entry.id }}">Показать заметки</button>
+    </dd>
+    <dt>Обновлено</dt>
+    <dd class="muted">{{ entry.updated_at.strftime('%Y-%m-%d %H:%M') }} UTC</dd>
+  </dl>
+
+  <footer class="entry-actions">
+    <a class="btn" href="{{ url_for('entry_edit', entry_id=entry.id) }}">Редактировать</a>
+    <form method="post" action="{{ url_for('entry_delete', entry_id=entry.id) }}"
+          onsubmit="return confirm('Удалить запись «{{ entry.title }}»?');" style="display:inline">
+      <button type="submit" class="btn btn-danger">Удалить</button>
+    </form>
+  </footer>
+</article>
+{% endblock %}

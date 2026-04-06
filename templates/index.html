@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Записи — Password Manager{% endblock %}
+{% block content %}
+<section class="toolbar">
+  <form method="get" action="{{ url_for('index') }}" class="search-form">
+    <input type="search" name="q" value="{{ q }}"
+           placeholder="Поиск по названию, хосту, пользователю, тегам…">
+    <select name="category">
+      <option value="">Все категории</option>
+      {% for key, label in categories %}
+        <option value="{{ key }}" {% if key == category %}selected{% endif %}>
+          {{ label }} ({{ stats[key] }})
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn">Искать</button>
+    {% if q or category %}
+      <a class="btn btn-link" href="{{ url_for('index') }}">Сбросить</a>
+    {% endif %}
+  </form>
+  <a class="btn btn-primary" href="{{ url_for('entry_new') }}">+ Новая запись</a>
+</section>
+
+{% if entries %}
+<table class="entries">
+  <thead>
+    <tr>
+      <th>Название</th>
+      <th>Категория</th>
+      <th>Хост</th>
+      <th>Пользователь</th>
+      <th>Теги</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in entries %}
+    <tr>
+      <td>
+        <a href="{{ url_for('entry_view', entry_id=e.id) }}"><strong>{{ e.title }}</strong></a>
+        {% if e.protocol %}<span class="chip">{{ e.protocol }}</span>{% endif %}
+      </td>
+      <td>{{ e.category_label() }}</td>
+      <td>
+        {{ e.host }}{% if e.port %}:{{ e.port }}{% endif %}
+      </td>
+      <td>{{ e.username }}</td>
+      <td>
+        {% for tag in e.tag_list() %}<span class="tag">{{ tag }}</span>{% endfor %}
+      </td>
+      <td class="row-actions">
+        <button class="btn btn-small" data-copy-password="{{ e.id }}">Скопировать пароль</button>
+        <a class="btn btn-small" href="{{ url_for('entry_view', entry_id=e.id) }}">Открыть</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="muted">Записей нет. Создайте первую.</p>
+{% endif %}
+{% endblock %}
