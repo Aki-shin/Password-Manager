@@ -1,27 +1,15 @@
-// Относительные URL: приложение живёт под /proxy/<name>/, поэтому
-// все запросы строим от текущего location без ведущего слэша.
 (function () {
-  const API_BASE = (function () {
-    // убираем последний сегмент пути (файл или пустую строку после /)
+  // Приложение теперь на корне / (прозрачный TCP-прокси), поэтому
+  // API_BASE — просто корень сайта.
+  function apiBase() {
     let path = window.location.pathname;
-    // всегда обрезаем до ближайшего /, чтобы получить базовый префикс
     if (!path.endsWith("/")) {
       path = path.substring(0, path.lastIndexOf("/") + 1);
     }
-    // пытаемся определить префикс /proxy/<name>/ по <link href=".../static/...">
-    const link = document.querySelector('link[rel="stylesheet"][href*="static/"]');
-    if (link) {
-      const href = link.getAttribute("href");
-      const idx = href.indexOf("static/");
-      if (idx >= 0) {
-        // resolved URL даст абсолютный путь до static/
-        const abs = new URL(link.href).pathname;
-        const staticIdx = abs.indexOf("/static/");
-        if (staticIdx >= 0) return abs.substring(0, staticIdx + 1);
-      }
-    }
     return path;
-  })();
+  }
+
+  const API_BASE = apiBase();
 
   async function fetchSecret(entryId) {
     const res = await fetch(`${API_BASE}api/entries/${entryId}/secret`, {
@@ -36,7 +24,6 @@
       await navigator.clipboard.writeText(text);
       return true;
     } catch (e) {
-      // fallback для старых браузеров / http
       const ta = document.createElement("textarea");
       ta.value = text;
       ta.style.position = "fixed";
@@ -63,14 +50,14 @@
     const target = ev.target.closest("button");
     if (!target) return;
 
-    // Копировать произвольный текст из data-copy-text
+    // Копировать произвольный текст
     if (target.dataset.copyText !== undefined) {
       const ok = await copyToClipboard(target.dataset.copyText);
       flash(target, ok ? "Скопировано" : "Ошибка");
       return;
     }
 
-    // Копировать пароль по id
+    // Копировать пароль
     if (target.dataset.copyPassword) {
       try {
         const data = await fetchSecret(target.dataset.copyPassword);
@@ -82,7 +69,19 @@
       return;
     }
 
-    // Показать пароль в <code id="password-field">
+    // Копировать become-пароль
+    if (target.dataset.copyBecome) {
+      try {
+        const data = await fetchSecret(target.dataset.copyBecome);
+        const ok = await copyToClipboard(data.become_password || "");
+        flash(target, ok ? "Скопировано" : "Ошибка");
+      } catch (e) {
+        flash(target, "Ошибка");
+      }
+      return;
+    }
+
+    // Показать пароль
     if (target.dataset.revealPassword) {
       const field = document.getElementById("password-field");
       if (!field) return;
@@ -95,6 +94,27 @@
       try {
         const data = await fetchSecret(target.dataset.revealPassword);
         field.textContent = data.password || "(пусто)";
+        field.dataset.revealed = "1";
+        target.textContent = "Скрыть";
+      } catch (e) {
+        flash(target, "Ошибка");
+      }
+      return;
+    }
+
+    // Показать become-пароль
+    if (target.dataset.revealBecome) {
+      const field = document.getElementById("become-password-field");
+      if (!field) return;
+      if (field.dataset.revealed === "1") {
+        field.textContent = "••••••••";
+        field.dataset.revealed = "0";
+        target.textContent = "Показать";
+        return;
+      }
+      try {
+        const data = await fetchSecret(target.dataset.revealBecome);
+        field.textContent = data.become_password || "(пусто)";
         field.dataset.revealed = "1";
         target.textContent = "Скрыть";
       } catch (e) {

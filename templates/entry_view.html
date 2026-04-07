@@ -9,6 +9,10 @@
     <div class="meta">
       <span class="chip">{{ entry.category_label() }}</span>
       {% if entry.protocol %}<span class="chip">{{ entry.protocol }}</span>{% endif %}
+      {% if entry.become_method and entry.become_method != 'none' %}
+        <span class="chip chip-become">{{ entry.become_label() }}</span>
+      {% endif %}
+      {% if entry.source == 'ansible' %}<span class="chip chip-ansible">ansible</span>{% endif %}
       {% for tag in entry.tag_list() %}<span class="tag">{{ tag }}</span>{% endfor %}
     </div>
   </header>
@@ -38,6 +42,14 @@
       <button class="btn btn-small" data-reveal-password="{{ entry.id }}">Показать</button>
       <button class="btn btn-small" data-copy-password="{{ entry.id }}">Копировать</button>
     </dd>
+    {% if entry.become_method and entry.become_method != 'none' %}
+    <dt>Пароль {{ entry.become_label() }}</dt>
+    <dd>
+      <code id="become-password-field" data-entry-id="{{ entry.id }}">••••••••</code>
+      <button class="btn btn-small" data-reveal-become="{{ entry.id }}">Показать</button>
+      <button class="btn btn-small" data-copy-become="{{ entry.id }}">Копировать</button>
+    </dd>
+    {% endif %}
     <dt>Заметки</dt>
     <dd>
       <pre id="notes-field" data-entry-id="{{ entry.id }}" class="notes">••••••••</pre>

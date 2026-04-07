@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Password Manager{% endblock %}</title>
-  {# Относительные URL: приложение живёт под /proxy/<name>/ #}
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -18,11 +17,11 @@
     </nav>
     <div class="tools">
       <a class="btn btn-small" href="{{ url_for('backup_download') }}"
-         title="Скачать vault.db + master.key в одном zip">Бэкап</a>
+         title="Скачать vault.db + master.key">Бэкап</a>
       <form method="post" action="{{ url_for('backup_restore') }}"
             enctype="multipart/form-data" class="inline-form"
             onsubmit="return confirm('Импорт заменит текущую базу и ключ. Продолжить?');">
-        <label class="btn btn-small" style="margin:0">
+        <label class="btn btn-small" style="margin:0;cursor:pointer">
           Импорт
           <input type="file" name="backup" accept=".zip"
                  style="display:none" onchange="this.form.submit()">

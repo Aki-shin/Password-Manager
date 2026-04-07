@@ -26,6 +26,7 @@ a:hover { text-decoration: underline; }
 code { background: var(--surface-2); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
 pre { background: var(--surface-2); padding: 10px; border-radius: 4px; white-space: pre-wrap; }
 
+/* --- Topbar --- */
 .topbar {
   display: flex; align-items: center; gap: 24px;
   background: var(--surface);
@@ -42,12 +43,14 @@ pre { background: var(--surface-2); padding: 10px; border-radius: 4px; white-spa
 
 .content { max-width: 1100px; margin: 24px auto; padding: 0 24px; }
 
+/* --- Flash --- */
 .flashes { margin-bottom: 16px; }
 .flash { padding: 10px 14px; border-radius: 4px; margin-bottom: 8px; }
 .flash-error { background: rgba(224,86,86,.15); border: 1px solid var(--danger); }
 .flash-success { background: rgba(76,175,124,.15); border: 1px solid var(--success); }
 .flash-message { background: var(--surface); border: 1px solid var(--border); }
 
+/* --- Buttons --- */
 .btn {
   display: inline-block;
   background: var(--surface-2);
@@ -64,36 +67,53 @@ pre { background: var(--surface-2); padding: 10px; border-radius: 4px; white-spa
 .btn-danger:hover { background: var(--danger); color: white; }
 .btn-small { padding: 4px 10px; font-size: 12px; }
 .btn-link { background: transparent; border: none; color: var(--muted); }
+.btn-copy { background: transparent; border: none; cursor: pointer; font-size: 14px; padding: 2px 6px; }
 
+/* --- Toolbar / Search --- */
 .toolbar {
   display: flex; justify-content: space-between;
   gap: 12px; margin-bottom: 20px; align-items: center;
   flex-wrap: wrap;
 }
-.search-form { display: flex; gap: 8px; flex: 1; min-width: 300px; }
-.search-form input[type=search], .search-form select {
+.search-form { display: flex; gap: 8px; flex: 1; min-width: 300px; flex-wrap: wrap; }
+.search-form input[type=text], .search-form select {
   background: var(--surface); color: var(--text);
   border: 1px solid var(--border); padding: 7px 10px; border-radius: 4px;
 }
-.search-form input[type=search] { flex: 1; }
+.search-form input[type=text] { flex: 1; min-width: 160px; }
 
-table.entries {
+/* --- Entries table --- */
+table.entries-table, table.entries {
   width: 100%; border-collapse: collapse;
   background: var(--surface); border-radius: 6px; overflow: hidden;
 }
+table.entries-table th, table.entries-table td,
 table.entries th, table.entries td {
   padding: 10px 14px; text-align: left;
   border-bottom: 1px solid var(--border);
 }
-table.entries th { background: var(--surface-2); color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
-table.entries tr:last-child td { border-bottom: none; }
-table.entries tr:hover td { background: rgba(255,255,255,.02); }
+table.entries-table th, table.entries th {
+  background: var(--surface-2); color: var(--muted);
+  font-weight: 600; font-size: 12px; text-transform: uppercase;
+}
+table.entries-table tr:last-child td, table.entries tr:last-child td { border-bottom: none; }
+table.entries-table tr:hover td, table.entries tr:hover td { background: rgba(255,255,255,.02); }
 
+.actions-cell { white-space: nowrap; }
+
+/* --- Badges --- */
 .chip {
   background: var(--surface-2); border: 1px solid var(--border);
   padding: 1px 8px; border-radius: 10px; font-size: 11px;
   margin-left: 6px; color: var(--muted);
 }
+.chip-become { border-color: var(--warn); color: var(--warn); }
+.chip-ansible { border-color: var(--success); color: var(--success); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
+.badge-cat { background: var(--surface-2); color: var(--muted); }
+.badge-become { background: rgba(212,161,71,.15); color: var(--warn); }
+.badge-ansible { background: rgba(76,175,124,.15); color: var(--success); }
+.badge-manual { background: var(--surface-2); color: var(--muted); }
 .tag {
   background: rgba(76,139,245,.15); color: var(--primary);
   padding: 1px 7px; border-radius: 3px; font-size: 11px;
@@ -101,28 +121,23 @@ table.entries tr:hover td { background: rgba(255,255,255,.02); }
 }
 .row-actions { display: flex; gap: 6px; }
 .muted { color: var(--muted); }
+.hint { color: var(--muted); font-size: 12px; font-weight: normal; }
 .back { color: var(--muted); display: inline-block; margin-bottom: 16px; }
 
-.login-box {
-  max-width: 380px; margin: 80px auto;
-  background: var(--surface); border: 1px solid var(--border);
-  padding: 32px; border-radius: 8px;
-}
-.login-box h1 { margin: 0 0 4px; }
-.login-box form { display: flex; flex-direction: column; gap: 14px; margin-top: 20px; }
-.login-box label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
-
+/* --- Forms --- */
 input[type=text], input[type=password], input[type=search],
-select, textarea {
+input[type=number], select, textarea {
   background: var(--surface); color: var(--text);
   border: 1px solid var(--border); padding: 8px 10px; border-radius: 4px;
   font-family: inherit; font-size: 14px;
+  width: 100%;
 }
 input:focus, select:focus, textarea:focus {
   outline: none; border-color: var(--primary);
 }
 textarea { font-family: "SF Mono", Consolas, monospace; }
 
+/* --- Entry card --- */
 .entry-card {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 8px; padding: 24px;
@@ -135,14 +150,81 @@ textarea { font-family: "SF Mono", Consolas, monospace; }
 .fields .notes { flex-basis: 100%; margin: 0; }
 .entry-actions { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
 
+/* --- Entry form --- */
 .entry-form .grid-2 {
   display: grid; grid-template-columns: 1fr 1fr; gap: 14px 20px;
 }
 .entry-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
 .entry-form label.full { grid-column: 1 / -1; }
-.entry-form label.checkbox { flex-direction: row; align-items: center; gap: 8px; }
 .form-actions { margin-top: 20px; display: flex; gap: 10px; }
+.form-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+.form-row input { flex: 1; min-width: 120px; }
 
-.new-user { margin-top: 30px; }
+/* --- Card section (Ansible, etc.) --- */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
+}
+.card h2 { margin: 0 0 14px; font-size: 16px; }
+.card h3 { margin: 18px 0 8px; font-size: 14px; color: var(--muted); }
+.card h3:first-of-type { margin-top: 4px; }
+
+/* --- Credential tables (Ansible) --- */
+.cred-group { margin-bottom: 16px; }
+table.cred-table {
+  width: 100%; border-collapse: collapse; margin-bottom: 8px;
+  background: var(--surface-2); border-radius: 4px; overflow: hidden;
+}
+table.cred-table th, table.cred-table td {
+  padding: 6px 12px; text-align: left;
+  border-bottom: 1px solid var(--border); font-size: 13px;
+}
+table.cred-table th { color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 600; }
+table.cred-table tr:last-child td { border-bottom: none; }
+
+.cred-add-form { margin-top: 6px; }
+.cred-add-form .form-row { gap: 6px; }
+.cred-add-form input { padding: 6px 8px; font-size: 13px; }
+
+.ansible-settings-form .grid-2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 12px;
+}
+.ansible-settings-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
+.ansible-settings-form label.full { grid-column: 1 / -1; }
+
+/* --- Ansible actions --- */
+.ansible-actions { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+
+.status-box {
+  padding: 12px; background: var(--surface-2); border-radius: 4px;
+  font-size: 13px; display: flex; align-items: center; gap: 8px;
+}
+.status-indicator {
+  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+}
+.status-indicator.idle { background: var(--muted); }
+.status-indicator.running { background: var(--warn); animation: pulse 1s infinite; }
+.status-indicator.success { background: var(--success); }
+.status-indicator.failed { background: var(--danger); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
+/* --- Log output --- */
+.log-output {
+  background: #0a0e14; color: #b0b8c8; padding: 16px;
+  border-radius: 6px; font-size: 12px; line-height: 1.6;
+  max-height: 600px; overflow-y: auto;
+  font-family: "SF Mono", Consolas, "Courier New", monospace;
+}
+
 .inline-form { display: inline-flex; gap: 6px; margin-right: 6px; }
-.inline-form input { padding: 4px 8px; font-size: 12px; }
+
+/* --- Code editor (host_vars) --- */
+.code-editor {
+  width: 100%;
+  font-family: "SF Mono", Consolas, "Courier New", monospace;
+  font-size: 13px; line-height: 1.6;
+  background: #0a0e14; color: #b0b8c8;
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 14px; resize: vertical;
+  tab-size: 2;
+}

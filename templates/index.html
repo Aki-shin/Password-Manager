@@ -2,14 +2,13 @@
 {% block title %}Записи — Password Manager{% endblock %}
 {% block content %}
 <section class="toolbar">
-  <form method="get" action="{{ url_for('index') }}" class="search-form">
-    <input type="search" name="q" value="{{ q }}"
-           placeholder="Поиск по названию, хосту, пользователю, тегам…">
+  <form class="search-form" method="get" action="{{ url_for('index') }}">
+    <input type="text" name="q" placeholder="Поиск…" value="{{ q }}">
     <select name="category">
       <option value="">Все категории</option>
       {% for key, label in categories %}
-        <option value="{{ key }}" {% if key == category %}selected{% endif %}>
-          {{ label }} ({{ stats[key] }})
+        <option value="{{ key }}" {% if category == key %}selected{% endif %}>
+          {{ label }} ({{ stats.get(key, 0) }})
         </option>
       {% endfor %}
     </select>
@@ -22,35 +21,35 @@
 </section>
 
 {% if entries %}
-<table class="entries">
+<table class="entries-table">
   <thead>
     <tr>
       <th>Название</th>
       <th>Категория</th>
       <th>Хост</th>
-      <th>Пользователь</th>
-      <th>Теги</th>
+      <th>Логин</th>
+      <th>Протокол</th>
+      <th>Привилегии</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     {% for e in entries %}
     <tr>
-      <td>
-        <a href="{{ url_for('entry_view', entry_id=e.id) }}"><strong>{{ e.title }}</strong></a>
-        {% if e.protocol %}<span class="chip">{{ e.protocol }}</span>{% endif %}
-      </td>
-      <td>{{ e.category_label() }}</td>
-      <td>
-        {{ e.host }}{% if e.port %}:{{ e.port }}{% endif %}
-      </td>
+      <td><a href="{{ url_for('entry_view', entry_id=e.id) }}">{{ e.title }}</a></td>
+      <td><span class="badge badge-cat">{{ e.category_label() }}</span></td>
+      <td>{{ e.host }}</td>
       <td>{{ e.username }}</td>
+      <td>{{ e.protocol }}</td>
       <td>
-        {% for tag in e.tag_list() %}<span class="tag">{{ tag }}</span>{% endfor %}
+        {% if e.become_method and e.become_method != 'none' %}
+          <span class="badge badge-become">{{ e.become_label() }}</span>
+        {% else %}
+          —
+        {% endif %}
       </td>
-      <td class="row-actions">
-        <button class="btn btn-small" data-copy-password="{{ e.id }}">Скопировать пароль</button>
-        <a class="btn btn-small" href="{{ url_for('entry_view', entry_id=e.id) }}">Открыть</a>
+      <td class="actions-cell">
+        <button class="btn btn-small btn-copy" data-copy-password="{{ e.id }}" title="Копировать пароль">📋</button>
       </td>
     </tr>
     {% endfor %}

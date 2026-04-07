@@ -57,6 +57,19 @@
       <input type="text" name="password" value="{{ password_value }}"
              autocomplete="off">
     </label>
+    <label>
+      Повышение привилегий
+      <select name="become_method">
+        {% for key, label in become_methods %}
+          <option value="{{ key }}" {% if entry and entry.become_method == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Пароль sudo/su
+      <input type="text" name="become_password" value="{{ become_password_value }}"
+             autocomplete="off" placeholder="если отличается от основного">
+    </label>
     <label class="full">
       Теги (через запятую)
       <input type="text" name="tags" value="{{ entry.tags if entry else '' }}"
@@ -71,7 +84,11 @@
 
   <div class="form-actions">
     <button type="submit" class="btn btn-primary">Сохранить</button>
-    <a href="{{ url_for('index') }}" class="btn">Отмена</a>
+    {% if entry %}
+      <a href="{{ url_for('entry_view', entry_id=entry.id) }}" class="btn">Отмена</a>
+    {% else %}
+      <a href="{{ url_for('index') }}" class="btn">Отмена</a>
+    {% endif %}
   </div>
 </form>
 {% endblock %}
