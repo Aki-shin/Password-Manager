@@ -1,6 +1,10 @@
 (function () {
-  // Приложение теперь на корне / (прозрачный TCP-прокси), поэтому
-  // API_BASE — просто корень сайта.
+  // Авто-скрытие раскрытого секрета через 30 секунд.
+  const REVEAL_MS = 30000;
+  let hideTimer = null;
+  let activeField = null;
+  let activeButton = null;
+
   function apiBase() {
     let path = window.location.pathname;
     if (!path.endsWith("/")) {
@@ -8,7 +12,6 @@
     }
     return path;
   }
-
   const API_BASE = apiBase();
 
   async function fetchSecret(entryId) {
@@ -36,14 +39,71 @@
     }
   }
 
-  function flash(btn, text) {
-    const original = btn.textContent;
-    btn.textContent = text;
+  function flashBtn(btn, label, success = true) {
+    const original = btn.innerHTML;
+    btn.innerHTML = label;
     btn.disabled = true;
+    btn.classList.add(success ? "btn-flash-ok" : "btn-flash-err");
     setTimeout(() => {
-      btn.textContent = original;
+      btn.innerHTML = original;
       btn.disabled = false;
+      btn.classList.remove("btn-flash-ok", "btn-flash-err");
     }, 1500);
+  }
+
+  function hideField(field, button) {
+    if (!field) return;
+    field.textContent = "••••••••";
+    field.dataset.revealed = "0";
+    if (button) button.classList.remove("is-revealed");
+  }
+
+  function clearTimer() {
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+    }
+  }
+
+  function armAutoHide(field, button) {
+    clearTimer();
+    activeField = field;
+    activeButton = button;
+    hideTimer = setTimeout(() => {
+      hideField(field, button);
+      activeField = null;
+      activeButton = null;
+      hideTimer = null;
+    }, REVEAL_MS);
+  }
+
+  function revealField(field, button, value) {
+    // Если что-то ещё раскрыто — спрятать.
+    if (activeField && activeField !== field) {
+      hideField(activeField, activeButton);
+    }
+    field.textContent = value || "(пусто)";
+    field.dataset.revealed = "1";
+    button.classList.add("is-revealed");
+    armAutoHide(field, button);
+  }
+
+  async function toggleReveal(button, fieldId, secretKey, entryId) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    if (field.dataset.revealed === "1") {
+      hideField(field, button);
+      clearTimer();
+      activeField = null;
+      activeButton = null;
+      return;
+    }
+    try {
+      const data = await fetchSecret(entryId);
+      revealField(field, button, data[secretKey]);
+    } catch (e) {
+      flashBtn(button, "Ошибка", false);
+    }
   }
 
   document.addEventListener("click", async (ev) => {
@@ -53,7 +113,7 @@
     // Копировать произвольный текст
     if (target.dataset.copyText !== undefined) {
       const ok = await copyToClipboard(target.dataset.copyText);
-      flash(target, ok ? "Скопировано" : "Ошибка");
+      flashBtn(target, ok ? "Скопировано" : "Ошибка", ok);
       return;
     }
 
@@ -62,9 +122,9 @@
       try {
         const data = await fetchSecret(target.dataset.copyPassword);
         const ok = await copyToClipboard(data.password || "");
-        flash(target, ok ? "Скопировано" : "Ошибка");
+        flashBtn(target, ok ? "Скопировано" : "Ошибка", ok);
       } catch (e) {
-        flash(target, "Ошибка");
+        flashBtn(target, "Ошибка", false);
       }
       return;
     }
@@ -74,73 +134,33 @@
       try {
         const data = await fetchSecret(target.dataset.copyBecome);
         const ok = await copyToClipboard(data.become_password || "");
-        flash(target, ok ? "Скопировано" : "Ошибка");
+        flashBtn(target, ok ? "Скопировано" : "Ошибка", ok);
       } catch (e) {
-        flash(target, "Ошибка");
+        flashBtn(target, "Ошибка", false);
       }
       return;
     }
 
-    // Показать пароль
+    // Показать/скрыть пароль
     if (target.dataset.revealPassword) {
-      const field = document.getElementById("password-field");
-      if (!field) return;
-      if (field.dataset.revealed === "1") {
-        field.textContent = "••••••••";
-        field.dataset.revealed = "0";
-        target.textContent = "Показать";
-        return;
-      }
-      try {
-        const data = await fetchSecret(target.dataset.revealPassword);
-        field.textContent = data.password || "(пусто)";
-        field.dataset.revealed = "1";
-        target.textContent = "Скрыть";
-      } catch (e) {
-        flash(target, "Ошибка");
-      }
+      await toggleReveal(target, "password-field", "password", target.dataset.revealPassword);
       return;
     }
 
-    // Показать become-пароль
+    // Показать/скрыть become-пароль
     if (target.dataset.revealBecome) {
-      const field = document.getElementById("become-password-field");
-      if (!field) return;
-      if (field.dataset.revealed === "1") {
-        field.textContent = "••••••••";
-        field.dataset.revealed = "0";
-        target.textContent = "Показать";
-        return;
-      }
-      try {
-        const data = await fetchSecret(target.dataset.revealBecome);
-        field.textContent = data.become_password || "(пусто)";
-        field.dataset.revealed = "1";
-        target.textContent = "Скрыть";
-      } catch (e) {
-        flash(target, "Ошибка");
-      }
+      await toggleReveal(target, "become-password-field", "become_password", target.dataset.revealBecome);
       return;
     }
 
-    // Показать заметки
+    // Показать/скрыть заметки
     if (target.dataset.revealNotes) {
-      const field = document.getElementById("notes-field");
-      if (!field) return;
-      if (field.dataset.revealed === "1") {
-        field.textContent = "••••••••";
-        field.dataset.revealed = "0";
-        target.textContent = "Показать заметки";
-        return;
-      }
-      try {
-        const data = await fetchSecret(target.dataset.revealNotes);
-        field.textContent = data.notes || "(пусто)";
-        field.dataset.revealed = "1";
-        target.textContent = "Скрыть заметки";
-      } catch (e) {
-        flash(target, "Ошибка");
-      }
+      await toggleReveal(target, "notes-field", "notes", target.dataset.revealNotes);
     }
+  });
+
+  // При уходе со страницы — спрятать всё.
+  window.addEventListener("beforeunload", () => {
+    if (activeField) hideField(activeField, activeButton);
   });
 })();

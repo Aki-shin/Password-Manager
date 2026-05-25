@@ -1,13 +1,14 @@
 {% extends "base.html" %}
+{% from "_macros.html" import icon %}
 {% block title %}{{ entry.title }} — Password Manager{% endblock %}
 {% block content %}
-<a href="{{ url_for('index') }}" class="back">&larr; К списку</a>
+<a href="{{ url_for('index') }}" class="back">{{ icon('arrow-left') }} К списку</a>
 
 <article class="entry-card">
   <header>
     <h1>{{ entry.title }}</h1>
     <div class="meta">
-      <span class="chip">{{ entry.category_label() }}</span>
+      <span class="cat cat-{{ entry.category }}">{{ entry.category_label() }}</span>
       {% if entry.protocol %}<span class="chip">{{ entry.protocol }}</span>{% endif %}
       {% if entry.become_method and entry.become_method != 'none' %}
         <span class="chip chip-become">{{ entry.become_label() }}</span>
@@ -16,53 +17,95 @@
     </div>
   </header>
 
-  <dl class="fields">
-    {% if entry.host %}
-      <dt>Хост</dt>
+  {% if entry.host or entry.url %}
+  <div class="entry-section">
+    <h2>Подключение</h2>
+    <dl class="fields">
+      {% if entry.host %}
+        <dt>{{ icon('server') }} Хост</dt>
+        <dd>
+          <code>{{ entry.host }}{% if entry.port %}:{{ entry.port }}{% endif %}</code>
+          <button class="btn btn-small"
+                  data-copy-text="{{ entry.host }}{% if entry.port %}:{{ entry.port }}{% endif %}">
+            {{ icon('copy') }} Копировать
+          </button>
+        </dd>
+      {% endif %}
+      {% if entry.url %}
+        <dt>{{ icon('globe') }} URL</dt>
+        <dd><a href="{{ entry.url }}" target="_blank" rel="noopener">{{ entry.url }}</a></dd>
+      {% endif %}
+    </dl>
+  </div>
+  {% endif %}
+
+  <div class="entry-section">
+    <h2>Учётные данные</h2>
+    <dl class="fields">
+      {% if entry.username %}
+        <dt>{{ icon('user') }} Логин</dt>
+        <dd>
+          <code>{{ entry.username }}</code>
+          <button class="btn btn-small" data-copy-text="{{ entry.username }}">
+            {{ icon('copy') }} Копировать
+          </button>
+        </dd>
+      {% endif %}
+      <dt>{{ icon('key') }} Пароль</dt>
       <dd>
-        <code>{{ entry.host }}{% if entry.port %}:{{ entry.port }}{% endif %}</code>
-        <button class="btn btn-small" data-copy-text="{{ entry.host }}{% if entry.port %}:{{ entry.port }}{% endif %}">Копировать</button>
+        <code id="password-field" data-entry-id="{{ entry.id }}">••••••••</code>
+        <button class="btn btn-small btn-toggle" data-reveal-password="{{ entry.id }}">
+          <span class="toggle-show">{{ icon('eye') }} Показать</span>
+          <span class="toggle-hide">{{ icon('eye-off') }} Скрыть</span>
+        </button>
+        <button class="btn btn-small" data-copy-password="{{ entry.id }}">
+          {{ icon('copy') }} Копировать
+        </button>
       </dd>
-    {% endif %}
-    {% if entry.url %}
-      <dt>URL</dt>
-      <dd><a href="{{ entry.url }}" target="_blank" rel="noopener">{{ entry.url }}</a></dd>
-    {% endif %}
-    {% if entry.username %}
-      <dt>Логин</dt>
+      {% if entry.become_method and entry.become_method != 'none' %}
+      <dt>{{ icon('shield') }} {{ entry.become_label() }}</dt>
       <dd>
-        <code>{{ entry.username }}</code>
-        <button class="btn btn-small" data-copy-text="{{ entry.username }}">Копировать</button>
+        <code id="become-password-field" data-entry-id="{{ entry.id }}">••••••••</code>
+        <button class="btn btn-small btn-toggle" data-reveal-become="{{ entry.id }}">
+          <span class="toggle-show">{{ icon('eye') }} Показать</span>
+          <span class="toggle-hide">{{ icon('eye-off') }} Скрыть</span>
+        </button>
+        <button class="btn btn-small" data-copy-become="{{ entry.id }}">
+          {{ icon('copy') }} Копировать
+        </button>
       </dd>
-    {% endif %}
-    <dt>Пароль</dt>
-    <dd>
-      <code id="password-field" data-entry-id="{{ entry.id }}">••••••••</code>
-      <button class="btn btn-small" data-reveal-password="{{ entry.id }}">Показать</button>
-      <button class="btn btn-small" data-copy-password="{{ entry.id }}">Копировать</button>
-    </dd>
-    {% if entry.become_method and entry.become_method != 'none' %}
-    <dt>Пароль {{ entry.become_label() }}</dt>
-    <dd>
-      <code id="become-password-field" data-entry-id="{{ entry.id }}">••••••••</code>
-      <button class="btn btn-small" data-reveal-become="{{ entry.id }}">Показать</button>
-      <button class="btn btn-small" data-copy-become="{{ entry.id }}">Копировать</button>
-    </dd>
-    {% endif %}
-    <dt>Заметки</dt>
-    <dd>
-      <pre id="notes-field" data-entry-id="{{ entry.id }}" class="notes">••••••••</pre>
-      <button class="btn btn-small" data-reveal-notes="{{ entry.id }}">Показать заметки</button>
-    </dd>
-    <dt>Обновлено</dt>
-    <dd class="muted">{{ entry.updated_at.strftime('%Y-%m-%d %H:%M') }} UTC</dd>
-  </dl>
+      {% endif %}
+    </dl>
+  </div>
+
+  <div class="entry-section">
+    <h2>Заметки</h2>
+    <div class="notes-block">
+      <pre id="notes-field" data-entry-id="{{ entry.id }}" class="notes-field">••••••••</pre>
+      <button class="btn btn-small btn-toggle" data-reveal-notes="{{ entry.id }}">
+        <span class="toggle-show">{{ icon('eye') }} Показать заметки</span>
+        <span class="toggle-hide">{{ icon('eye-off') }} Скрыть заметки</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="entry-section">
+    <h2>Метаданные</h2>
+    <dl class="fields">
+      <dt>{{ icon('clock') }} Обновлено</dt>
+      <dd class="muted">{{ entry.updated_at.strftime('%Y-%m-%d %H:%M') }} UTC</dd>
+    </dl>
+  </div>
 
   <footer class="entry-actions">
-    <a class="btn" href="{{ url_for('entry_edit', entry_id=entry.id) }}">Редактировать</a>
+    <a class="btn" href="{{ url_for('entry_edit', entry_id=entry.id) }}">
+      {{ icon('edit') }} Редактировать
+    </a>
     <form method="post" action="{{ url_for('entry_delete', entry_id=entry.id) }}"
-          onsubmit="return confirm('Удалить запись «{{ entry.title }}»?');" style="display:inline">
-      <button type="submit" class="btn btn-danger">Удалить</button>
+          onsubmit="return confirm('Удалить запись «{{ entry.title }}»?');"
+          style="display:inline">
+      <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+      <button type="submit" class="btn btn-danger">{{ icon('trash') }} Удалить</button>
     </form>
   </footer>
 </article>

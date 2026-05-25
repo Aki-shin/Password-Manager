@@ -24,6 +24,7 @@ from flask import (
     render_template,
     request,
     send_file,
+    session,
     url_for,
 )
 from sqlalchemy import or_
@@ -58,7 +59,28 @@ def create_app() -> Flask:
     return app
 
 
+def _get_csrf_token() -> str:
+    token = session.get("_csrf")
+    if not token:
+        token = secrets.token_urlsafe(32)
+        session["_csrf"] = token
+    return token
+
+
 def _register_routes(app):
+
+    @app.before_request
+    def _csrf_protect():
+        if request.method != "POST":
+            return
+        sent = request.form.get("_csrf") or request.headers.get("X-CSRF-Token")
+        expected = session.get("_csrf")
+        if not sent or not expected or not secrets.compare_digest(sent, expected):
+            abort(400, "CSRF token mismatch")
+
+    @app.context_processor
+    def _inject_csrf():
+        return {"csrf_token": _get_csrf_token()}
 
     @app.route("/")
     def index():

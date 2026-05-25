@@ -1,32 +1,42 @@
+{% from "_macros.html" import icon %}
 <!doctype html>
 <html lang="ru">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a0f1c">
+  <meta name="color-scheme" content="dark">
   <title>{% block title %}Password Manager{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <a href="{{ url_for('index') }}">Password Manager</a>
+      <a href="{{ url_for('index') }}">
+        <img class="brand-logo" src="{{ url_for('static', filename='favicon.svg') }}" alt="">
+        Password Manager
+      </a>
     </div>
-    <nav>
-      <a href="{{ url_for('index') }}">Записи</a>
-      <a href="{{ url_for('entry_new') }}">+ Новая</a>
-    </nav>
-    <div class="tools">
-      <a class="btn btn-small" href="{{ url_for('backup_download') }}"
-         title="Скачать vault.db + master.key">Бэкап</a>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-actions">
+      <a class="btn btn-ghost" href="{{ url_for('backup_download') }}"
+         title="Скачать vault.db + master.key">
+        {{ icon('download') }} Бэкап
+      </a>
       <form method="post" action="{{ url_for('backup_restore') }}"
             enctype="multipart/form-data" class="inline-form"
             onsubmit="return confirm('Импорт заменит текущую базу и ключ. Продолжить?');">
-        <label class="btn btn-small" style="margin:0;cursor:pointer">
-          Импорт
+        <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+        <label class="btn btn-ghost" style="margin:0;cursor:pointer">
+          {{ icon('upload') }} Импорт
           <input type="file" name="backup" accept=".zip"
                  style="display:none" onchange="this.form.submit()">
         </label>
       </form>
+      <a class="btn btn-primary" href="{{ url_for('entry_new') }}">
+        {{ icon('plus') }} Новая запись
+      </a>
     </div>
   </header>
 

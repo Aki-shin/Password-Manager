@@ -1,11 +1,17 @@
 {% extends "base.html" %}
+{% from "_macros.html" import icon %}
 {% block title %}{% if entry %}Редактирование{% else %}Новая запись{% endif %} — Password Manager{% endblock %}
 {% block content %}
-<a href="{{ url_for('index') }}" class="back">&larr; К списку</a>
+<a href="{{ url_for('index') }}" class="back">{{ icon('arrow-left') }} К списку</a>
 
-<h1>{% if entry %}Редактирование записи{% else %}Новая запись{% endif %}</h1>
+<div class="page-header">
+  <div class="page-title">
+    <h1>{% if entry %}Редактирование записи{% else %}Новая запись{% endif %}</h1>
+  </div>
+</div>
 
 <form method="post" class="entry-form">
+  <input type="hidden" name="_csrf" value="{{ csrf_token }}">
   <div class="grid-2">
     <label>
       Название*
@@ -71,7 +77,7 @@
              autocomplete="off" placeholder="если отличается от основного">
     </label>
     <label class="full">
-      Теги (через запятую)
+      Теги <span class="dim">(через запятую)</span>
       <input type="text" name="tags" value="{{ entry.tags if entry else '' }}"
              placeholder="prod, k8s, domain-controller">
     </label>
@@ -83,7 +89,9 @@
   </div>
 
   <div class="form-actions">
-    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <button type="submit" class="btn btn-primary">
+      {{ icon('shield-check') }} Сохранить
+    </button>
     {% if entry %}
       <a href="{{ url_for('entry_view', entry_id=entry.id) }}" class="btn">Отмена</a>
     {% else %}

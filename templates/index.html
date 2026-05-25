@@ -1,10 +1,21 @@
 {% extends "base.html" %}
+{% from "_macros.html" import icon %}
 {% block title %}Записи — Password Manager{% endblock %}
 {% block content %}
+<div class="page-header">
+  <div class="page-title">
+    <h1>Записи</h1>
+    <span class="count">{{ entries|length }}</span>
+  </div>
+</div>
+
 <section class="toolbar">
   <form class="search-form" method="get" action="{{ url_for('index') }}">
-    <input type="text" name="q" placeholder="Поиск…" value="{{ q }}">
-    <select name="category">
+    <div class="search-wrap">
+      {{ icon('search') }}
+      <input type="search" name="q" placeholder="Поиск по названию, хосту, логину, тегам…" value="{{ q }}">
+    </div>
+    <select name="category" onchange="this.form.submit()">
       <option value="">Все категории</option>
       {% for key, label in categories %}
         <option value="{{ key }}" {% if category == key %}selected{% endif %}>
@@ -12,12 +23,11 @@
         </option>
       {% endfor %}
     </select>
-    <button type="submit" class="btn">Искать</button>
+    <button type="submit" class="btn">{{ icon('search') }} Искать</button>
     {% if q or category %}
-      <a class="btn btn-link" href="{{ url_for('index') }}">Сбросить</a>
+      <a class="btn btn-ghost" href="{{ url_for('index') }}">{{ icon('x') }} Сбросить</a>
     {% endif %}
   </form>
-  <a class="btn btn-primary" href="{{ url_for('entry_new') }}">+ Новая запись</a>
 </section>
 
 {% if entries %}
@@ -26,36 +36,54 @@
     <tr>
       <th>Название</th>
       <th>Категория</th>
-      <th>Хост</th>
-      <th>Логин</th>
-      <th>Протокол</th>
-      <th>Привилегии</th>
+      <th class="hide-mobile">Хост</th>
+      <th class="hide-mobile">Логин</th>
+      <th class="hide-mobile">Протокол</th>
+      <th class="hide-mobile">Привилегии</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     {% for e in entries %}
     <tr>
-      <td><a href="{{ url_for('entry_view', entry_id=e.id) }}">{{ e.title }}</a></td>
-      <td><span class="badge badge-cat">{{ e.category_label() }}</span></td>
-      <td>{{ e.host }}</td>
-      <td>{{ e.username }}</td>
-      <td>{{ e.protocol }}</td>
-      <td>
+      <td class="title-cell">
+        <a href="{{ url_for('entry_view', entry_id=e.id) }}">{{ e.title }}</a>
+      </td>
+      <td><span class="cat cat-{{ e.category }}">{{ e.category_label() }}</span></td>
+      <td class="hide-mobile mono-cell">{{ e.host }}{% if e.port %}:{{ e.port }}{% endif %}</td>
+      <td class="hide-mobile mono-cell">{{ e.username }}</td>
+      <td class="hide-mobile mono-cell">{{ e.protocol }}</td>
+      <td class="hide-mobile">
         {% if e.become_method and e.become_method != 'none' %}
-          <span class="badge badge-become">{{ e.become_label() }}</span>
+          <span class="chip chip-become">{{ e.become_label() }}</span>
         {% else %}
-          —
+          <span class="dim">—</span>
         {% endif %}
       </td>
       <td class="actions-cell">
-        <button class="btn btn-small btn-copy" data-copy-password="{{ e.id }}" title="Копировать пароль">📋</button>
+        <button class="btn btn-small btn-icon"
+                data-copy-password="{{ e.id }}"
+                title="Копировать пароль"
+                aria-label="Копировать пароль">{{ icon('copy') }}</button>
       </td>
     </tr>
     {% endfor %}
   </tbody>
 </table>
 {% else %}
-  <p class="muted">Записей нет. Создайте первую.</p>
+  <div class="empty">
+    {{ icon('inbox', 32) }}
+    <div class="empty-title">
+      {% if q or category %}Ничего не найдено{% else %}Записей нет{% endif %}
+    </div>
+    <p>
+      {% if q or category %}Попробуйте изменить запрос или сбросить фильтры.{% else %}Создайте первую запись, чтобы начать.{% endif %}
+    </p>
+    {% if q or category %}
+      <a href="{{ url_for('index') }}" class="btn">{{ icon('x') }} Сбросить фильтры</a>
+    {% else %}
+      <a href="{{ url_for('entry_new') }}" class="btn btn-primary">{{ icon('plus') }} Новая запись</a>
+    {% endif %}
+  </div>
 {% endif %}
 {% endblock %}
