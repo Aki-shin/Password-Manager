@@ -108,20 +108,15 @@ table.entries-table tr:hover td, table.entries tr:hover td { background: rgba(25
   margin-left: 6px; color: var(--muted);
 }
 .chip-become { border-color: var(--warn); color: var(--warn); }
-.chip-ansible { border-color: var(--success); color: var(--success); }
 .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; }
 .badge-cat { background: var(--surface-2); color: var(--muted); }
 .badge-become { background: rgba(212,161,71,.15); color: var(--warn); }
-.badge-ansible { background: rgba(76,175,124,.15); color: var(--success); }
-.badge-manual { background: var(--surface-2); color: var(--muted); }
 .tag {
   background: rgba(76,139,245,.15); color: var(--primary);
   padding: 1px 7px; border-radius: 3px; font-size: 11px;
   margin-right: 4px;
 }
-.row-actions { display: flex; gap: 6px; }
 .muted { color: var(--muted); }
-.hint { color: var(--muted); font-size: 12px; font-weight: normal; }
 .back { color: var(--muted); display: inline-block; margin-bottom: 16px; }
 
 /* --- Forms --- */
@@ -157,74 +152,5 @@ textarea { font-family: "SF Mono", Consolas, monospace; }
 .entry-form label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--muted); }
 .entry-form label.full { grid-column: 1 / -1; }
 .form-actions { margin-top: 20px; display: flex; gap: 10px; }
-.form-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
-.form-row input { flex: 1; min-width: 120px; }
-
-/* --- Card section (Ansible, etc.) --- */
-.card {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: 8px; padding: 20px 24px; margin-bottom: 20px;
-}
-.card h2 { margin: 0 0 14px; font-size: 16px; }
-.card h3 { margin: 18px 0 8px; font-size: 14px; color: var(--muted); }
-.card h3:first-of-type { margin-top: 4px; }
-
-/* --- Credential tables (Ansible) --- */
-.cred-group { margin-bottom: 16px; }
-table.cred-table {
-  width: 100%; border-collapse: collapse; margin-bottom: 8px;
-  background: var(--surface-2); border-radius: 4px; overflow: hidden;
-}
-table.cred-table th, table.cred-table td {
-  padding: 6px 12px; text-align: left;
-  border-bottom: 1px solid var(--border); font-size: 13px;
-}
-table.cred-table th { color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 600; }
-table.cred-table tr:last-child td { border-bottom: none; }
-
-.cred-add-form { margin-top: 6px; }
-.cred-add-form .form-row { gap: 6px; }
-.cred-add-form input { padding: 6px 8px; font-size: 13px; }
-
-.ansible-settings-form .grid-2 {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; margin-bottom: 12px;
-}
-.ansible-settings-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); }
-.ansible-settings-form label.full { grid-column: 1 / -1; }
-
-/* --- Ansible actions --- */
-.ansible-actions { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-
-.status-box {
-  padding: 12px; background: var(--surface-2); border-radius: 4px;
-  font-size: 13px; display: flex; align-items: center; gap: 8px;
-}
-.status-indicator {
-  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
-}
-.status-indicator.idle { background: var(--muted); }
-.status-indicator.running { background: var(--warn); animation: pulse 1s infinite; }
-.status-indicator.success { background: var(--success); }
-.status-indicator.failed { background: var(--danger); }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
-
-/* --- Log output --- */
-.log-output {
-  background: #0a0e14; color: #b0b8c8; padding: 16px;
-  border-radius: 6px; font-size: 12px; line-height: 1.6;
-  max-height: 600px; overflow-y: auto;
-  font-family: "SF Mono", Consolas, "Courier New", monospace;
-}
 
 .inline-form { display: inline-flex; gap: 6px; margin-right: 6px; }
-
-/* --- Code editor (host_vars) --- */
-.code-editor {
-  width: 100%;
-  font-family: "SF Mono", Consolas, "Courier New", monospace;
-  font-size: 13px; line-height: 1.6;
-  background: #0a0e14; color: #b0b8c8;
-  border: 1px solid var(--border); border-radius: 6px;
-  padding: 14px; resize: vertical;
-  tab-size: 2;
-}

@@ -12,7 +12,6 @@
       {% if entry.become_method and entry.become_method != 'none' %}
         <span class="chip chip-become">{{ entry.become_label() }}</span>
       {% endif %}
-      {% if entry.source == 'ansible' %}<span class="chip chip-ansible">ansible</span>{% endif %}
       {% for tag in entry.tag_list() %}<span class="tag">{{ tag }}</span>{% endfor %}
     </div>
   </header>

@@ -13,7 +13,7 @@ import os
 import secrets
 import shutil
 import zipfile
-from datetime import datetime
+from datetime import datetime, timezone
 
 from flask import (
     Flask,
@@ -155,7 +155,7 @@ def _register_routes(app):
         finally:
             if os.path.exists(tmp_db):
                 os.remove(tmp_db)
-        stamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
         return send_file(
             buf, mimetype="application/zip", as_attachment=True,
             download_name=f"password-manager-backup-{stamp}.zip",
@@ -178,7 +178,7 @@ def _register_routes(app):
                 key_bytes = zf.read(KEY_FILENAME)
             db.session.remove()
             db.engine.dispose()
-            stamp = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+            stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
             db_bak = f"{DB_PATH}.pre-restore-{stamp}"
             key_bak = f"{KEY_PATH}.pre-restore-{stamp}"
             if os.path.exists(DB_PATH):

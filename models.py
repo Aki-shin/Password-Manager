@@ -1,7 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 CATEGORIES = [
     ("infrastructure", "Инфраструктура"),
@@ -35,9 +39,9 @@ class Entry(db.Model):
     notes_enc = db.Column(db.Text, default="")
     become_method = db.Column(db.String(16), default="none")
     become_password_enc = db.Column(db.Text, default="")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=_utcnow)
     updated_at = db.Column(
-        db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow
+        db.DateTime, default=_utcnow, onupdate=_utcnow
     )
 
     def tag_list(self):
