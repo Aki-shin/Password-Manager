@@ -217,7 +217,11 @@ def _register_routes(app):
     @app.route("/entries/<int:entry_id>")
     def entry_view(entry_id):
         entry = db.session.get(Entry, entry_id) or abort(404)
-        return render_template("entry_view.html", entry=entry)
+        # Заметки рендерим сразу — это контекст (пути, MFA-подсказки,
+        # особенности доступа), а не секрет в строгом смысле. Пароли
+        # по-прежнему скрыты до клика.
+        entry_notes = app.vault.decrypt(entry.notes_enc)
+        return render_template("entry_view.html", entry=entry, entry_notes=entry_notes)
 
     @app.route("/entries/<int:entry_id>/edit", methods=["GET", "POST"])
     def entry_edit(entry_id):
@@ -253,7 +257,6 @@ def _register_routes(app):
         "copy_password": ("password_enc",        "password_copied"),
         "view_become":   ("become_password_enc", "become_viewed"),
         "copy_become":   ("become_password_enc", "become_copied"),
-        "view_notes":    ("notes_enc",           "notes_viewed"),
     }
 
     @app.route("/api/entries/<int:entry_id>/secret")

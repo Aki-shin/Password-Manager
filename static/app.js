@@ -10,15 +10,6 @@
   let clipboardClearTimer = null;
   let lastCopied = "";
 
-  function apiBase() {
-    let path = window.location.pathname;
-    if (!path.endsWith("/")) {
-      path = path.substring(0, path.lastIndexOf("/") + 1);
-    }
-    return path;
-  }
-  const API_BASE = apiBase();
-
   // === Theme toggle ===
 
   function applyTheme(theme) {
@@ -37,7 +28,8 @@
   // === Secret API ===
 
   async function fetchSecret(entryId, action) {
-    const url = `${API_BASE}api/entries/${entryId}/secret?action=${encodeURIComponent(action)}`;
+    // Приложение всегда на корне сайта (см. app.py docstring).
+    const url = `/api/entries/${entryId}/secret?action=${encodeURIComponent(action)}`;
     const res = await fetch(url, { credentials: "same-origin" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -207,12 +199,6 @@
     // Показать/скрыть become-пароль
     if (target.dataset.revealBecome) {
       await toggleReveal(target, "become-password-field", "view_become", target.dataset.revealBecome);
-      return;
-    }
-
-    // Показать/скрыть заметки
-    if (target.dataset.revealNotes) {
-      await toggleReveal(target, "notes-field", "view_notes", target.dataset.revealNotes);
     }
   });
 

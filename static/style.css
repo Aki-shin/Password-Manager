@@ -367,7 +367,13 @@ pre {
   color: var(--text-dim);
   pointer-events: none;
 }
-.search-wrap input { padding-left: 38px; width: 100%; }
+/* Селектор по [type=...] делаем специфичнее, чем `input[type=search]`
+   в общей секции форм ниже, иначе шорткат `padding` затирает наш
+   padding-left и иконка наезжает на текст. */
+.search-wrap input[type="search"],
+.search-wrap input[type="text"] {
+  padding-left: 42px;
+}
 
 /* === Forms === */
 input[type=text], input[type=password], input[type=search],

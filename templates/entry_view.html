@@ -78,16 +78,12 @@
     </dl>
   </div>
 
+  {% if entry_notes %}
   <div class="entry-section">
     <h2>Заметки</h2>
-    <div class="notes-block">
-      <pre id="notes-field" data-entry-id="{{ entry.id }}" class="notes-field">••••••••</pre>
-      <button type="button" class="btn btn-small btn-toggle" data-reveal-notes="{{ entry.id }}">
-        <span class="toggle-show">{{ icon('eye') }} Показать заметки</span>
-        <span class="toggle-hide">{{ icon('eye-off') }} Скрыть заметки</span>
-      </button>
-    </div>
+    <pre class="notes-field">{{ entry_notes }}</pre>
   </div>
+  {% endif %}
 
   <div class="entry-section">
     <h2>Метаданные</h2>
