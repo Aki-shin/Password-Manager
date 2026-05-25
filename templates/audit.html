@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_macros.html" import icon %}
+{% block title %}Журнал — Password Manager{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="page-title">
+    <h1>Журнал доступа</h1>
+    <span class="count">{{ total }}</span>
+  </div>
+</div>
+
+{% if events %}
+<table class="entries-table">
+  <thead>
+    <tr>
+      <th>Время</th>
+      <th>Действие</th>
+      <th>Запись</th>
+      <th class="hide-mobile">IP</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for e in events %}
+    <tr>
+      <td class="mono-cell">{{ e.timestamp.strftime('%Y-%m-%d %H:%M:%S') }} UTC</td>
+      <td><span class="act act-{{ e.kind() }}">{{ e.label() }}</span></td>
+      <td>
+        {% if e.entry_id %}
+          <a href="{{ url_for('entry_view', entry_id=e.entry_id) }}">{{ e.entry_title }}</a>
+        {% elif e.entry_title %}
+          <span class="dim">{{ e.entry_title }}</span>
+        {% else %}
+          <span class="dim">—</span>
+        {% endif %}
+      </td>
+      <td class="hide-mobile mono-cell">{{ e.remote_addr or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}
+    <a class="btn" href="{{ url_for('audit_log', page=page-1) }}">
+      {{ icon('arrow-left') }} Назад
+    </a>
+  {% endif %}
+  <span class="dim">Страница {{ page }} из {{ pages }}</span>
+  {% if page < pages %}
+    <a class="btn" href="{{ url_for('audit_log', page=page+1) }}">
+      Вперёд {{ icon('arrow-right') }}
+    </a>
+  {% endif %}
+</div>
+{% endif %}
+{% else %}
+<div class="empty">
+  {{ icon('history', 32) }}
+  <div class="empty-title">Журнал пуст</div>
+  <p>События появятся после первых действий с записями.</p>
+</div>
+{% endif %}
+{% endblock %}

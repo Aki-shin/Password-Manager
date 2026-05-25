@@ -1,11 +1,11 @@
 {% from "_macros.html" import icon %}
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="{{ theme }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0a0f1c">
-  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0a0f1c" media="(prefers-color-scheme: dark)">
   <title>{% block title %}Password Manager{% endblock %}</title>
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
@@ -18,20 +18,33 @@
         Password Manager
       </a>
     </div>
+    <nav class="topbar-nav">
+      <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="active"{% endif %}>
+        {{ icon('list') }} Записи
+      </a>
+      <a href="{{ url_for('audit_log') }}" {% if request.endpoint == 'audit_log' %}class="active"{% endif %}>
+        {{ icon('history') }} Журнал
+      </a>
+    </nav>
     <div class="topbar-spacer"></div>
     <div class="topbar-actions">
+      <button type="button" class="btn btn-ghost btn-icon theme-toggle"
+              data-theme-toggle aria-label="Сменить тему">
+        <span class="toggle-dark">{{ icon('moon') }}</span>
+        <span class="toggle-light">{{ icon('sun') }}</span>
+      </button>
       <a class="btn btn-ghost" href="{{ url_for('backup_download') }}"
          title="Скачать vault.db + master.key">
         {{ icon('download') }} Бэкап
       </a>
       <form method="post" action="{{ url_for('backup_restore') }}"
             enctype="multipart/form-data" class="inline-form"
-            onsubmit="return confirm('Импорт заменит текущую базу и ключ. Продолжить?');">
+            data-confirm="Импорт заменит текущую базу и ключ. Продолжить?">
         <input type="hidden" name="_csrf" value="{{ csrf_token }}">
-        <label class="btn btn-ghost" style="margin:0;cursor:pointer">
+        <label class="btn btn-ghost file-upload-label">
           {{ icon('upload') }} Импорт
           <input type="file" name="backup" accept=".zip"
-                 style="display:none" onchange="this.form.submit()">
+                 class="file-input-hidden" data-auto-submit>
         </label>
       </form>
       <a class="btn btn-primary" href="{{ url_for('entry_new') }}">

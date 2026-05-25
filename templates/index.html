@@ -15,7 +15,7 @@
       {{ icon('search') }}
       <input type="search" name="q" placeholder="Поиск по названию, хосту, логину, тегам…" value="{{ q }}">
     </div>
-    <select name="category" onchange="this.form.submit()">
+    <select name="category" data-auto-submit>
       <option value="">Все категории</option>
       {% for key, label in categories %}
         <option value="{{ key }}" {% if category == key %}selected{% endif %}>
@@ -61,7 +61,7 @@
         {% endif %}
       </td>
       <td class="actions-cell">
-        <button class="btn btn-small btn-icon"
+        <button type="button" class="btn btn-small btn-icon"
                 data-copy-password="{{ e.id }}"
                 title="Копировать пароль"
                 aria-label="Копировать пароль">{{ icon('copy') }}</button>

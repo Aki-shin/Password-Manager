@@ -25,7 +25,7 @@
         <dt>{{ icon('server') }} Хост</dt>
         <dd>
           <code>{{ entry.host }}{% if entry.port %}:{{ entry.port }}{% endif %}</code>
-          <button class="btn btn-small"
+          <button type="button" class="btn btn-small"
                   data-copy-text="{{ entry.host }}{% if entry.port %}:{{ entry.port }}{% endif %}">
             {{ icon('copy') }} Копировать
           </button>
@@ -46,7 +46,7 @@
         <dt>{{ icon('user') }} Логин</dt>
         <dd>
           <code>{{ entry.username }}</code>
-          <button class="btn btn-small" data-copy-text="{{ entry.username }}">
+          <button type="button" class="btn btn-small" data-copy-text="{{ entry.username }}">
             {{ icon('copy') }} Копировать
           </button>
         </dd>
@@ -54,11 +54,11 @@
       <dt>{{ icon('key') }} Пароль</dt>
       <dd>
         <code id="password-field" data-entry-id="{{ entry.id }}">••••••••</code>
-        <button class="btn btn-small btn-toggle" data-reveal-password="{{ entry.id }}">
+        <button type="button" class="btn btn-small btn-toggle" data-reveal-password="{{ entry.id }}">
           <span class="toggle-show">{{ icon('eye') }} Показать</span>
           <span class="toggle-hide">{{ icon('eye-off') }} Скрыть</span>
         </button>
-        <button class="btn btn-small" data-copy-password="{{ entry.id }}">
+        <button type="button" class="btn btn-small" data-copy-password="{{ entry.id }}">
           {{ icon('copy') }} Копировать
         </button>
       </dd>
@@ -66,11 +66,11 @@
       <dt>{{ icon('shield') }} {{ entry.become_label() }}</dt>
       <dd>
         <code id="become-password-field" data-entry-id="{{ entry.id }}">••••••••</code>
-        <button class="btn btn-small btn-toggle" data-reveal-become="{{ entry.id }}">
+        <button type="button" class="btn btn-small btn-toggle" data-reveal-become="{{ entry.id }}">
           <span class="toggle-show">{{ icon('eye') }} Показать</span>
           <span class="toggle-hide">{{ icon('eye-off') }} Скрыть</span>
         </button>
-        <button class="btn btn-small" data-copy-become="{{ entry.id }}">
+        <button type="button" class="btn btn-small" data-copy-become="{{ entry.id }}">
           {{ icon('copy') }} Копировать
         </button>
       </dd>
@@ -82,7 +82,7 @@
     <h2>Заметки</h2>
     <div class="notes-block">
       <pre id="notes-field" data-entry-id="{{ entry.id }}" class="notes-field">••••••••</pre>
-      <button class="btn btn-small btn-toggle" data-reveal-notes="{{ entry.id }}">
+      <button type="button" class="btn btn-small btn-toggle" data-reveal-notes="{{ entry.id }}">
         <span class="toggle-show">{{ icon('eye') }} Показать заметки</span>
         <span class="toggle-hide">{{ icon('eye-off') }} Скрыть заметки</span>
       </button>
@@ -102,8 +102,8 @@
       {{ icon('edit') }} Редактировать
     </a>
     <form method="post" action="{{ url_for('entry_delete', entry_id=entry.id) }}"
-          onsubmit="return confirm('Удалить запись «{{ entry.title }}»?');"
-          style="display:inline">
+          class="inline-delete-form"
+          data-confirm="Удалить запись «{{ entry.title }}»?">
       <input type="hidden" name="_csrf" value="{{ csrf_token }}">
       <button type="submit" class="btn btn-danger">{{ icon('trash') }} Удалить</button>
     </form>

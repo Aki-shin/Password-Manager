@@ -30,7 +30,15 @@ from flask import (
 from sqlalchemy import or_
 
 from crypto import Vault
-from models import BECOME_METHODS, CATEGORIES, CATEGORY_KEYS, Entry, db
+from models import (
+    AUDIT_LABELS,
+    BECOME_METHODS,
+    CATEGORIES,
+    CATEGORY_KEYS,
+    AuditLog,
+    Entry,
+    db,
+)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 INSTANCE_DIR = os.path.join(BASE_DIR, "instance")
@@ -41,6 +49,9 @@ KEY_FILENAME = "master.key"
 DB_PATH = os.path.join(INSTANCE_DIR, DB_FILENAME)
 KEY_PATH = os.path.join(INSTANCE_DIR, KEY_FILENAME)
 
+# Сколько последних pre-restore-* бэкапов оставлять.
+PRE_RESTORE_KEEP = 10
+
 
 def create_app() -> Flask:
     app = Flask(__name__, instance_path=INSTANCE_DIR)
@@ -48,6 +59,8 @@ def create_app() -> Flask:
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or secrets.token_hex(32)
     app.config["MAX_CONTENT_LENGTH"] = 64 * 1024 * 1024
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
     db.init_app(app)
     app.vault = Vault(key_path=KEY_PATH)
@@ -55,9 +68,12 @@ def create_app() -> Flask:
     with app.app_context():
         db.create_all()
 
+    _register_middleware(app)
     _register_routes(app)
     return app
 
+
+# ----- helpers -----
 
 def _get_csrf_token() -> str:
     token = session.get("_csrf")
@@ -67,7 +83,49 @@ def _get_csrf_token() -> str:
     return token
 
 
-def _register_routes(app):
+def _client_ip() -> str:
+    """Адрес клиента; за прокси берём первый из X-Forwarded-For."""
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()[:64]
+    return (request.remote_addr or "")[:64]
+
+
+def _audit(action: str, entry=None, entry_title: str = "") -> None:
+    log = AuditLog(
+        action=action,
+        entry_id=entry.id if entry else None,
+        entry_title=((entry.title if entry else entry_title) or "")[:200],
+        remote_addr=_client_ip(),
+    )
+    db.session.add(log)
+    db.session.commit()
+
+
+def _cleanup_pre_restore() -> None:
+    """Оставить только PRE_RESTORE_KEEP свежих pre-restore-* файлов."""
+    try:
+        files = [
+            f for f in os.listdir(INSTANCE_DIR)
+            if ".pre-restore-" in f
+            and (f.startswith(DB_FILENAME) or f.startswith(KEY_FILENAME))
+        ]
+    except OSError:
+        return
+    files.sort(
+        key=lambda f: os.path.getmtime(os.path.join(INSTANCE_DIR, f)),
+        reverse=True,
+    )
+    for f in files[PRE_RESTORE_KEEP:]:
+        try:
+            os.remove(os.path.join(INSTANCE_DIR, f))
+        except OSError:
+            pass
+
+
+# ----- middleware -----
+
+def _register_middleware(app):
 
     @app.before_request
     def _csrf_protect():
@@ -79,8 +137,40 @@ def _register_routes(app):
             abort(400, "CSRF token mismatch")
 
     @app.context_processor
-    def _inject_csrf():
-        return {"csrf_token": _get_csrf_token()}
+    def _inject_globals():
+        theme = request.cookies.get("theme", "light")
+        if theme not in ("light", "dark"):
+            theme = "light"
+        return {
+            "csrf_token": _get_csrf_token(),
+            "theme": theme,
+        }
+
+    @app.after_request
+    def _security_headers(response):
+        # Строгий CSP: никаких inline-скриптов/стилей,
+        # все ресурсы из 'self', data: разрешён только для картинок
+        # (CSS-фон со стрелкой селекта).
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self'; "
+            "style-src 'self'; "
+            "img-src 'self' data:; "
+            "connect-src 'self'; "
+            "font-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'"
+        )
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["Referrer-Policy"] = "no-referrer"
+        response.headers["X-Frame-Options"] = "DENY"
+        return response
+
+
+# ----- routes -----
+
+def _register_routes(app):
 
     @app.route("/")
     def index():
@@ -115,6 +205,7 @@ def _register_routes(app):
             _apply_form(entry, request.form, app.vault)
             db.session.add(entry)
             db.session.commit()
+            _audit("entry_created", entry=entry)
             flash("Запись создана.", "success")
             return redirect(url_for("entry_view", entry_id=entry.id))
         return render_template(
@@ -134,6 +225,7 @@ def _register_routes(app):
         if request.method == "POST":
             _apply_form(entry, request.form, app.vault)
             db.session.commit()
+            _audit("entry_updated", entry=entry)
             flash("Запись обновлена.", "success")
             return redirect(url_for("entry_view", entry_id=entry.id))
         return render_template(
@@ -147,18 +239,48 @@ def _register_routes(app):
     @app.route("/entries/<int:entry_id>/delete", methods=["POST"])
     def entry_delete(entry_id):
         entry = db.session.get(Entry, entry_id) or abort(404)
+        title = entry.title
         db.session.delete(entry)
         db.session.commit()
+        _audit("entry_deleted", entry_title=title)
         flash("Запись удалена.", "success")
         return redirect(url_for("index"))
 
+    # Единый endpoint для получения одного секрета.
+    # Возвращает только запрошенное поле, чтобы не светить лишнее.
+    _SECRET_ACTIONS = {
+        "view_password": ("password_enc",        "password_viewed"),
+        "copy_password": ("password_enc",        "password_copied"),
+        "view_become":   ("become_password_enc", "become_viewed"),
+        "copy_become":   ("become_password_enc", "become_copied"),
+        "view_notes":    ("notes_enc",           "notes_viewed"),
+    }
+
     @app.route("/api/entries/<int:entry_id>/secret")
     def api_secret(entry_id):
+        action = (request.args.get("action") or "").strip()
+        meta = _SECRET_ACTIONS.get(action)
+        if not meta:
+            abort(400, "unknown action")
+        attr, audit_action = meta
         entry = db.session.get(Entry, entry_id) or abort(404)
-        return jsonify(
-            password=app.vault.decrypt(entry.password_enc),
-            notes=app.vault.decrypt(entry.notes_enc),
-            become_password=app.vault.decrypt(entry.become_password_enc),
+        value = app.vault.decrypt(getattr(entry, attr))
+        _audit(audit_action, entry=entry)
+        return jsonify(value=value)
+
+    # --- журнал доступа ---
+
+    @app.route("/audit")
+    def audit_log():
+        page = max(1, request.args.get("page", 1, type=int))
+        per_page = 100
+        q = AuditLog.query.order_by(AuditLog.timestamp.desc())
+        total = q.count()
+        events = q.offset((page - 1) * per_page).limit(per_page).all()
+        pages = max(1, (total + per_page - 1) // per_page)
+        return render_template(
+            "audit.html",
+            events=events, page=page, pages=pages, total=total,
         )
 
     # --- бэкап / восстановление ---
@@ -178,6 +300,7 @@ def _register_routes(app):
             if os.path.exists(tmp_db):
                 os.remove(tmp_db)
         stamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        _audit("backup_downloaded")
         return send_file(
             buf, mimetype="application/zip", as_attachment=True,
             download_name=f"password-manager-backup-{stamp}.zip",
@@ -228,6 +351,8 @@ def _register_routes(app):
                 app.vault.reload()
                 flash(f"Импорт не удался, откат. Ошибка: {e}", "error")
                 return redirect(url_for("index"))
+            _cleanup_pre_restore()
+            _audit("backup_restored")
             flash("Бэкап восстановлен.", "success")
         except zipfile.BadZipFile:
             flash("Это не zip-архив.", "error")
